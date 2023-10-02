@@ -1,0 +1,25 @@
+services:
+  urlshortener:
+    container_name: url-shortener
+    image: shinunandakumar/url-shortener
+    restart: always
+    command: "go run cmd/url-shortener/main.go"
+    build:
+      context: ./
+      target: base
+    volumes:
+      - ./:/src
+    ports:
+      - 8080:8080
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --save 20 1 --loglevel warning --requirepass testpass
+    volumes:
+      - cache:/data
+
+volumes:
+  cache:
+    driver: local
