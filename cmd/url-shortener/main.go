@@ -17,6 +17,7 @@ func main() {
 
 	// Registering the routes
 	// TODO remove these from the main
+	http.HandleFunc("/", controllers.Redirect)
 	http.HandleFunc("/api/v1/health-check", controllers.HealthCheck)
 	http.HandleFunc("/api/v1/generate-url", controllers.GenerateURL)
 	http.HandleFunc("/api/v1/metrics", controllers.Metrics)

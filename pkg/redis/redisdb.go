@@ -2,44 +2,27 @@ package redis
 
 // redis package is used for the transactions in the redis
 import (
-	"log"
+	"fmt"
 
 	"github.com/go-redis/redis/v7"
+	"github.com/shinunandakumar/url-shortener/config"
 )
 
-func NewClient() error {
+// NewClient function will create a client and return
+func NewClient() redis.UniversalClient {
 
-	// Change to env
+	// TODO Change to env
 	rdb := redis.NewUniversalClient(&redis.UniversalOptions{
-		Addrs:    []string{"redis:6379"},
-		Password: "testpass",
+		Addrs:    []string{fmt.Sprintf("%s:%s", config.RedisAddress(), config.RedisPort())},
+		Password: config.RedisPass(),
 	})
 
-	log.Println(rdb.Ping())
 	// try to ping data base
 	if _, err := rdb.Ping().Result(); err != nil {
-		return err
-	}
-
-	err := rdb.Set("python", "interpreter", 0).Err()
-	if err != nil {
 		panic(err)
 	}
 
-	val, err := rdb.Get("python").Result()
-	if err != nil {
-		panic(err)
-	}
-	log.Println("python", val)
+	redis.Strings(rdb.Do("MGET", "k1", "k2", "k3"))
 
-	val2, err := rdb.Get("key2").Result()
-	if err == redis.Nil {
-		log.Println("key2 does not exist")
-	} else if err != nil {
-		panic(err)
-	} else {
-		log.Println("key2", val2)
-	}
-
-	return nil
+	return rdb
 }
