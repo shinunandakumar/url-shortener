@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sort"
 	"strings"
 
 	"github.com/shinunandakumar/url-shortener/config"
@@ -28,6 +29,13 @@ type Params struct {
 
 // A health check controller to check the health of application
 func HealthCheck(w http.ResponseWriter, r *http.Request) {
+
+	// check for redis health
+	// create redis client
+	rdb := redis.NewClient()
+	// in case of redis failure the program will panic
+	defer rdb.Close()
+
 	fmt.Fprintf(w, "OK!")
 }
 
@@ -57,9 +65,9 @@ func GenerateURL(w http.ResponseWriter, r *http.Request) {
 
 	// check if the url already registered or not
 	// TODO errcheck
-	val, _ := rdb.Get(params.URL).Result()
+	val := redis.FilterByKey(rdb, params.URL)
 	if val != "" {
-		resp := Params{URL: ShortURL(val), Status: http.StatusOK}
+		resp := Params{URL: val, Status: http.StatusOK}
 		json.NewEncoder(w).Encode(resp)
 		return
 	}
@@ -67,14 +75,25 @@ func GenerateURL(w http.ResponseWriter, r *http.Request) {
 	// generate a random string
 	randStr := generateRandString(config.ShortenerLength())
 	shorturl := ShortURL(randStr)
-	err := rdb.Set(params.URL, shorturl, 0).Err()
+	err := rdb.Set(shorturl, params.URL, 0).Err()
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		resp := ErrorResponse{Status: http.StatusBadRequest, Message: "Redis failure", Error: err}
 		json.NewEncoder(w).Encode(resp)
 		return
 	}
+
 	// TODO insert to metrics
+	domain := GetDomain(params.URL)
+	// check if the domain already exists or not
+	metricsArr, _ := rdb.Get(config.MetricsKey()).Bytes()
+	err = rdb.Set(config.MetricsKey(), ReConstructMetrics(metricsArr, domain), 0).Err()
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		resp := ErrorResponse{Status: http.StatusBadRequest, Message: "Redis failure", Error: err}
+		json.NewEncoder(w).Encode(resp)
+		return
+	}
 
 	log.Println("url generation was successful", shorturl)
 	resp := Params{URL: shorturl, Status: http.StatusOK}
@@ -92,18 +111,53 @@ func Redirect(w http.ResponseWriter, r *http.Request) {
 	rdb := redis.NewClient()
 	defer rdb.Close()
 
-	val, err := rdb.Get(inUrl).Result()
+	redirectionlink, err := rdb.Get(ShortURL(inUrl)).Result()
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		resp := ErrorResponse{Status: http.StatusBadRequest, Message: "Redis failure", Error: err}
+		resp := ErrorResponse{Status: http.StatusBadRequest, Message: "Invalid url", Error: err}
 		json.NewEncoder(w).Encode(resp)
 		return
 	}
-	fmt.Fprintf(w, "Redirecting the url")
+
+	log.Println("Redirected to ", redirectionlink)
+
+	// respond by redirect
+	http.Redirect(w, r, redirectionlink, http.StatusFound)
 }
 
 // metrics is an http function,it will return the most used url providers
 // TODO make a proper description
 func Metrics(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Generating the url")
+
+	log.Println("Metrics url")
+
+	// create redis client
+	rdb := redis.NewClient()
+	defer rdb.Close()
+
+	metricsArr, _ := rdb.Get(config.MetricsKey()).Bytes()
+	domainArr := make(map[string]int)
+	_ = json.Unmarshal(metricsArr, &domainArr)
+
+	// Convert the map to a slice of key-value pairs
+	var tempKVpairs []struct {
+		Domain string
+		Value  int
+	}
+	for k, v := range domainArr {
+		tempKVpairs = append(tempKVpairs, struct {
+			Domain string
+			Value  int
+		}{k, v})
+	}
+	// Sort the slice by values in descending order
+	sort.SliceStable(tempKVpairs, func(i, j int) bool {
+		return tempKVpairs[i].Value > tempKVpairs[j].Value
+	})
+
+	log.Println("Metrics Done")
+
+	w.WriteHeader(http.StatusAccepted)
+	json.NewEncoder(w).Encode(tempKVpairs[:config.MetricsLenth()])
+	return
 }

@@ -10,3 +10,10 @@ run:
 docker-build:
 	docker build -t shinunandakumar/url-shortener .
 
+.PHONY: docker-run
+docker-run:
+	docker compose up -d
+
+.PHONY: docker-down
+docker-down:
+	docker compose down
