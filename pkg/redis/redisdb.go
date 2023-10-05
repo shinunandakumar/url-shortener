@@ -49,9 +49,3 @@ func FilterByKey(rdb redis.UniversalClient, value string) string {
 	}
 	return ""
 }
-
-// SortByDESC is an experiment function, need to do some reworks on this function
-// just using it now for the completion purpose
-func SortByDESC(rdb redis.UniversalClient) map[string]int {
-	return nil
-}

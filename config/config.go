@@ -1,43 +1,50 @@
 package config
 
+import (
+	"os"
+	"strconv"
+)
+
+func getEnv(key string, fallback string) string {
+	if val := os.Getenv(key); val != "" {
+		return val
+	}
+	return fallback
+}
+
 // RedisAddress will return the redis address from the env
 func RedisAddress() string {
-	// TODO change to env
-	return "redis"
+	return getEnv("REDISADDRESS", "localhost")
 }
 
 // RedisPort will return the redis port from the env
 func RedisPort() string {
-	// TODO move to env
-	return "6379"
+	return getEnv("REDISPORT", "6379")
 }
 
 // RedisPass will return the redis password from the env
 func RedisPass() string {
-	// TODO move to env
-	return "testpass"
+	return getEnv("REDISPASS", "testpass")
 }
 
 // RedisPort will return the redis port from the env
 func ShortenerLength() int {
-	// TODO move to env
-	return 6
+	x, _ := strconv.Atoi(getEnv("SHORTENERLENGTH", "6"))
+	return x
 }
 
 // MetricsLenth will return the number of data to be shown in the metrics from the env
 func MetricsLenth() int {
-	// TODO move to env
-	return 3
+	x, _ := strconv.Atoi(getEnv("METRICSLENTH", "3"))
+	return x
 }
 
 // RedisPort will return the redis port from the env
 func Host() string {
-	// TODO move to env
-	return "localhost:8080"
+	return getEnv("HOST", "localhost:8080")
 }
 
 // MetricsKey will return the key name of metrics data to be stored in the redis from the env
 func MetricsKey() string {
-	// TODO move to env
-	return "metrics"
+	return getEnv("METRICSKEY", "metrics")
 }

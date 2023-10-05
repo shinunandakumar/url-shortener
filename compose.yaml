@@ -9,6 +9,8 @@ services:
       target: base
     volumes:
       - ./:/src
+    env_file:
+      - .env
     ports:
       - 8080:8080
   redis:

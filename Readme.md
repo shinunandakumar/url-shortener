@@ -11,9 +11,11 @@ This project is a URL shortener service that allows users to generate shortened 
 - **Method:** POST
 - **Request:**
   - **Body:**
-    - `original_url` (string): The original URL to be shortened.
+    - `url` (string): The original URL to be shortened.
 - **Response:**
-  - `shortened_url` (string): The shortened URL.
+  - `url` (string): The shortened URL.
+  - `status_code` (int): Status code.
+  
 
 ### 2. Health Check
 
@@ -29,7 +31,7 @@ This project is a URL shortener service that allows users to generate shortened 
 - **Description:** Provides metrics data for monitoring and analysis.
 - **Method:** GET
 - **Response:**
-  - Metrics data in the desired format (e.g., JSON, CSV, etc.).
+  - 'Metrics data as a list format'
 
 ### 4. Redirection API
 
@@ -38,7 +40,7 @@ This project is a URL shortener service that allows users to generate shortened 
 - **Method:** GET
 - **Request:**
   - **URL Parameter:**
-    - `shortened_url` (string): The shortened URL to redirect.
+    - `url` (string): The shortened URL to redirect.
 - **Response:**
   - Redirects to the original URL.
 
@@ -46,25 +48,19 @@ This project is a URL shortener service that allows users to generate shortened 
 
 ### Prerequisites
 
-- Go (version 1.16+)
-- Redis (for storing URL mappings)
+- docker 
+- docker-compose or docker compose plugin
 
 ### Installation
 
 1. Clone this repository: `git clone https://github.com/your-username/url-shortener.git`
 2. Navigate to the project directory: `cd url-shortener`
-3. Install dependencies: `go mod download`
-4. Build the project: `go build -o url-shortener`
+3. Install dependencies: `https://docs.docker.com/engine/install/`
+4. Build the project: `make docker-build`
 
 ## Usage
 
-1. Run the server: `./url-shortener`
+1. Run the server: `make docker-start`
 2. Access the APIs using the provided endpoints and methods.
+3. Run `make help` for further commands to use
 
-## Contributing
-
-Contributions are welcome! Feel free to open issues or submit pull requests to improve this project.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

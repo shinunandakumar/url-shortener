@@ -7,13 +7,9 @@ import (
 	"net/http"
 
 	"github.com/shinunandakumar/url-shortener/controllers"
-	"github.com/shinunandakumar/url-shortener/pkg/redis"
 )
 
 func main() {
-
-	// check
-	redis.NewClient()
 
 	// Registering the routes
 	// TODO remove these from the main
