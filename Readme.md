@@ -60,7 +60,7 @@ This project is a URL shortener service that allows users to generate shortened 
 
 ## Usage
 
-1. Run the server: `make docker-start`
+1. Run the server: `make docker-run`
 2. Access the APIs using the provided endpoints and methods.
 3. Run `make help` for further commands to use
 
